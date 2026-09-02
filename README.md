@@ -7,6 +7,8 @@ against the second-smallest eigenvalue of the graph's Laplacian.
 Topology and Time-Delays*, IEEE Trans. Automatic Control 49(9):1520–1533, 2004.
 [doi:10.1109/TAC.2004.834113](https://doi.org/10.1109/TAC.2004.834113)
 **Checked against:** [ROS2swarm](https://github.com/ROS2swarm/ROS2swarm).
+**Built on:** [ROS 2 Jazzy](https://docs.ros.org/en/jazzy/index.html) — the fleet is real nodes on
+real topics — and [Foxglove](https://foxglove.dev) to watch it converge.
 **From the book:** Gallier & Quaintance ch. 18 (Laplacians), 16 (Rayleigh–Ritz), 19 (spectral drawing), 14 (eigenvalues).
 
 ## Start
@@ -15,6 +17,15 @@ Topology and Time-Delays*, IEEE Trans. Automatic Control 49(9):1520–1533, 2004
 make check        # 12 tests. 6 fail. Those 6 are the job.
 make reproduce    # runs now, with a zero Laplacian. Every graph looks disconnected. Fix that.
 ```
+
+Then, once the algebra is right, run it as an actual fleet:
+
+```bash
+python3 run_fleet.py --graph ring --robots 8      # eight rclpy nodes on real topics
+ros2 run foxglove_bridge foxglove_bridge          # then open ws://localhost:8765 in Foxglove
+```
+
+The tests are NumPy and run anywhere. `fleet.py` needs the container, which is `ros:jazzy-ros-base`.
 
 ## What you write
 
@@ -73,8 +84,19 @@ under a budget is the design question the theorem implies but does not answer.
 **How you would know:** the same fitted decay rate `reproduce.py` already reports — a topology
 chosen by its spectrum has to actually converge faster, not merely on paper.
 
-## Graduating to ROS 2
+## Two layers, and the gap between them is the lesson
 
-`scripts/fetch_data.py` names ROS 2, Gazebo and ROS2swarm. None is in the image: a ROS 2 desktop
-image is several gigabytes and the graph is a matrix. Move across at step 6, when the question
-becomes whether λ₂ still predicts the rate once messages take real time to arrive.
+`evaluate.py` integrates `ẋ = -Lx` in NumPy. That is the right place to check your Laplacian: it is
+fast and deterministic, and if λ₂ does not predict the rate there, the mistake is in your algebra.
+
+But it assumes every robot reads every neighbour instantly and exactly — which is the assumption a
+fleet breaks. `fleet.py` is the same protocol as `rclpy` nodes: each robot publishes its value,
+subscribes to its neighbours', and steps a timer against whatever has actually arrived. Nothing is
+shared in memory. The graph is realised as topics.
+
+λ₂ should still predict the rate. Where it does not, the reason is in the transport rather than the
+mathematics — a robot that has heard from nobody yet does not move, so the first steps of a real
+fleet lag the prediction — and noticing that difference is most of what the lab is for.
+
+`ros:jazzy-ros-base` is about 600MB, which is the one place in these four labs where the
+environment is genuinely heavy. It is worth it: ROS 2 is the lane.
