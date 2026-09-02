@@ -97,7 +97,11 @@ shared in memory. The graph is realised as topics.
 λ₂ still predicts the rate. Where it does not, the reason is in the transport rather than the
 mathematics — and the shape of the difference is the interesting part:
 
-
+```
+    graph  lambda_2  sync pred   on ROS 2
+     ring    1.0000     1.0259     1.3897
+ complete    6.0000     7.1335     7.1306
+```
 
 The complete graph matches the synchronous prediction to within 0.04%. The ring beats it by 35%.
 
