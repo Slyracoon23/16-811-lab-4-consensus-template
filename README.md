@@ -94,9 +94,22 @@ fleet breaks. `fleet.py` is the same protocol as `rclpy` nodes: each robot publi
 subscribes to its neighbours', and steps a timer against whatever has actually arrived. Nothing is
 shared in memory. The graph is realised as topics.
 
-λ₂ should still predict the rate. Where it does not, the reason is in the transport rather than the
-mathematics — a robot that has heard from nobody yet does not move, so the first steps of a real
-fleet lag the prediction — and noticing that difference is most of what the lab is for.
+λ₂ still predicts the rate. Where it does not, the reason is in the transport rather than the
+mathematics — and the shape of the difference is the interesting part:
+
+
+
+The complete graph matches the synchronous prediction to within 0.04%. The ring beats it by 35%.
+
+That is not noise. Robots step on their own timers against whatever has arrived, so a neighbour's
+already-updated value gets used within the same sweep — Gauss-Seidel rather than Jacobi. On a
+complete graph it buys nothing, because everyone already hears everyone in one step. On a ring,
+information has to travel around the loop, and asynchronous updates carry it further per sweep than
+synchronous ones do. **The sparser the graph, the more the asynchrony helps.**
+
+Which is why CI asserts the *ordering* — a complete graph agrees faster than a ring — rather than a
+tolerance around λ₂. The ordering is the paper's claim and it survives the transport; a tight
+tolerance would only be measuring how synchronous your middleware happened to be that day.
 
 `ros:jazzy-ros-base` is about 600MB, which is the one place in these four labs where the
 environment is genuinely heavy. It is worth it: ROS 2 is the lane.
