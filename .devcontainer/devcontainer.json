@@ -1,7 +1,7 @@
 {
   "name": "16-811 lab 4 · consensus",
   "image": "ros:jazzy-ros-base",
-  "postCreateCommand": "apt-get update && apt-get install -y python3-pip ros-jazzy-foxglove-bridge && pip install --break-system-packages -e '.[dev]'",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   "remoteEnv": { "ROS_DOMAIN_ID": "42" },
   "customizations": {
     "vscode": {
