@@ -29,4 +29,4 @@ jobs:
             python3 evaluate.py --self-test
             python3 -c "import method, synthetic, baselines, reproduce, extend, fleet; print('imports ok')"
             python3 -m pytest -q tests/test_evaluate.py
-            python3 run_fleet.py --graph ring --robots 6 --check
+            python3 run_fleet.py --robots 6 --steps 500 --check
