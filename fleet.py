@@ -10,7 +10,7 @@ the graph is realised as topics. The convergence rate should still be lambda_2 â
 not, the reason is in the transport rather than in the algebra, which is the interesting half.
 
 Run it:
-    python run_fleet.py --graph ring --robots 8
+    python3 run_fleet.py --graph ring --robots 8
 
 Watch it, with Foxglove Studio connected through the bridge:
     ros2 run foxglove_bridge foxglove_bridge      # then open ws://localhost:8765
