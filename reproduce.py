@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 
 import numpy as np
 
@@ -11,6 +12,24 @@ import baselines
 from evaluate import decay_rate, simulate
 from method import ASSUMPTIONS, algebraic_connectivity, laplacian
 from synthetic import EXACT, complete, path, ring, star
+
+def jsonable(record: dict) -> dict:
+    """A record with every non-finite float replaced by ``None``.
+
+    `json.dump` writes `NaN` and `Infinity` by default. Python reads those back; `JSON.parse`
+    refuses them outright, so a single degenerate row makes the whole results file unreadable to
+    anything that is not Python — including the course app that imports it. `null` is JSON, and it
+    says the true thing: this one was not measured.
+
+    The sanitising happens here, at the boundary, and not in the functions that compute the
+    numbers. `float("nan")` is a perfectly good return value for a fit that had too few points, and
+    the printed summary below still uses `np.nanmean` over the real values.
+    """
+    return {
+        key: None if isinstance(value, float) and not math.isfinite(value) else value
+        for key, value in record.items()
+    }
+
 
 FAMILIES = {"complete": complete, "star": star, "ring": ring, "path": path}
 
@@ -41,7 +60,12 @@ def main() -> None:
             )
 
     with open("results.json", "w") as handle:
-        json.dump({"assumptions": ASSUMPTIONS, "records": records}, handle, indent=2)
+        json.dump(
+            {"assumptions": ASSUMPTIONS, "records": [jsonable(r) for r in records]},
+            handle,
+            indent=2,
+            allow_nan=False,
+        )
 
     print(f"{'graph':>9} {'yours':>9} {'algebra':>9} {'measured':>9} {'floor':>7}")
     for name in FAMILIES:
